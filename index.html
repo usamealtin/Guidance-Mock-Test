@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Arena - Mock Test</title>
+<title>Quiz Arena - Multi Test</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,8 +42,8 @@
     position: relative; z-index: 1;
     display: grid;
     grid-template-columns: 1fr 280px;
-    grid-template-rows: auto 1fr;
-    grid-template-areas: "header header" "main sidebar";
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "header header" "tabs tabs" "main sidebar";
     height: 100vh;
   }
 
@@ -74,6 +74,29 @@
     box-shadow: 0 0 8px var(--accent-glow);
   }
   .header-meta { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+
+  /* ── Tabs (Mock Tests) ── */
+  .test-tabs {
+    grid-area: tabs;
+    display: flex; gap: 10px;
+    padding: 12px 28px;
+    background: rgba(13,15,26,0.5);
+    border-bottom: 1px solid var(--glass-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .test-tabs::-webkit-scrollbar { display: none; }
+  .test-tab-btn {
+    padding: 8px 18px; border-radius: 8px;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    color: var(--text-secondary); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .test-tab-btn:hover { background: var(--glass-hover); color: var(--text-primary); }
+  .test-tab-btn.active {
+    background: rgba(124,109,245,0.2); border-color: var(--accent);
+    color: var(--accent-light); box-shadow: 0 0 12px rgba(124,109,245,0.2);
+  }
 
   /* ── Sidebar ── */
   .sidebar {
@@ -108,7 +131,6 @@
   .optic-btn:hover { background: var(--glass-hover); border-color: rgba(255,255,255,0.22); color: var(--text-primary); transform: scale(1.05); }
   .optic-btn.active { background: var(--active-bg); border-color: var(--active-border); color: #fff; box-shadow: 0 0 14px var(--accent-glow), inset 0 0 6px rgba(255,255,255,0.08); }
   
-  /* Correct / Incorrect Optic Button Styles */
   .optic-btn.correct { background: rgba(52,211,153,0.15); border-color: var(--success); color: var(--success); box-shadow: inset 0 0 8px rgba(52,211,153,0.1); }
   .optic-btn.incorrect { background: rgba(248,113,113,0.15); border-color: var(--danger); color: var(--danger); box-shadow: inset 0 0 8px rgba(248,113,113,0.1); }
   
@@ -157,10 +179,7 @@
   }
   @keyframes fadeSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  .q-header {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    margin-bottom: 20px;
-  }
+  .q-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
   .q-number-badge { display: flex; align-items: center; gap: 10px; }
   .q-num {
     width: 38px; height: 38px; border-radius: 11px;
@@ -182,38 +201,20 @@
   }
   .hint-btn:hover { background: rgba(251,191,36,0.14); border-color: rgba(251,191,36,0.6); box-shadow: 0 0 12px rgba(251,191,36,0.2); }
 
-  .question-text {
-    font-size: 17px; font-weight: 500; line-height: 1.65;
-    color: var(--text-primary); margin-bottom: 24px;
-  }
+  .question-text { font-size: 17px; font-weight: 500; line-height: 1.65; color: var(--text-primary); margin-bottom: 24px; }
 
   /* ── Choices ── */
   .choices { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
-
   .choice-btn {
     display: flex; align-items: center; gap: 14px;
     padding: 14px 18px; border-radius: 13px;
     border: 1.5px solid var(--glass-border);
-    background: rgba(255,255,255,0.04);
-    color: var(--text-primary);
-    cursor: pointer; text-align: left;
-    transition: all 0.18s ease;
-    font-size: 14px; font-family: 'Inter', sans-serif;
-    position: relative; overflow: hidden;
+    background: rgba(255,255,255,0.04); color: var(--text-primary);
+    cursor: pointer; text-align: left; transition: all 0.18s ease;
+    font-size: 14px; font-family: 'Inter', sans-serif; position: relative; overflow: hidden;
   }
-  .choice-btn:hover:not(.selected) {
-    background: rgba(124,109,245,0.08);
-    border-color: rgba(124,109,245,0.35);
-    transform: translateX(3px);
-  }
-  .choice-btn.selected {
-    background: rgba(124,109,245,0.18);
-    border-color: var(--accent);
-    color: #fff;
-    box-shadow: 0 0 0 1px rgba(124,109,245,0.3), 0 4px 20px rgba(124,109,245,0.2);
-  }
-  
-  /* Status Colors for choices (after answering) */
+  .choice-btn:hover:not(.selected) { background: rgba(124,109,245,0.08); border-color: rgba(124,109,245,0.35); transform: translateX(3px); }
+  .choice-btn.selected { background: rgba(124,109,245,0.18); border-color: var(--accent); color: #fff; box-shadow: 0 0 0 1px rgba(124,109,245,0.3), 0 4px 20px rgba(124,109,245,0.2); }
   .choice-btn.selected.correct-choice { background: rgba(52,211,153,0.15); border-color: var(--success); }
   .choice-btn.selected.incorrect-choice { background: rgba(248,113,113,0.15); border-color: var(--danger); }
   .choice-btn.correct-choice .choice-key { background: var(--success); color: #000; border-color: var(--success); box-shadow: 0 0 10px var(--success-glow); }
@@ -224,8 +225,7 @@
     border: 1.5px solid var(--glass-border);
     display: flex; align-items: center; justify-content: center;
     font-size: 12px; font-weight: 700; color: var(--text-secondary);
-    background: rgba(255,255,255,0.05);
-    transition: all 0.18s ease;
+    background: rgba(255,255,255,0.05); transition: all 0.18s ease;
   }
   .choice-text { flex: 1; line-height: 1.5; }
 
@@ -233,82 +233,40 @@
   .nav-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
   .nav-btn {
     display: flex; align-items: center; gap: 8px;
-    padding: 11px 22px; border-radius: 12px;
-    font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: all 0.2s;
-    border: 1.5px solid var(--glass-border);
-    background: var(--glass-bg); color: var(--text-primary);
-    backdrop-filter: blur(10px);
+    padding: 11px 22px; border-radius: 12px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--glass-border);
+    background: var(--glass-bg); color: var(--text-primary); backdrop-filter: blur(10px);
   }
   .nav-btn:hover:not(:disabled) { background: var(--glass-hover); border-color: rgba(255,255,255,0.25); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
   .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-  .nav-btn.primary {
-    background: linear-gradient(135deg, var(--accent), #9580ff);
-    border-color: transparent; color: #fff;
-    box-shadow: 0 4px 20px var(--accent-glow);
-  }
+  .nav-btn.primary { background: linear-gradient(135deg, var(--accent), #9580ff); border-color: transparent; color: #fff; box-shadow: 0 4px 20px var(--accent-glow); }
   .nav-btn.primary:hover:not(:disabled) { box-shadow: 0 6px 28px rgba(124,109,245,0.5); }
   .nav-center { font-size: 13px; color: var(--text-muted); }
 
-  /* ── Hint Modal ── */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.25s;
-  }
+  /* ── Modals & Finish ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
   .modal-overlay.show { opacity: 1; pointer-events: all; }
-  .modal-box {
-    background: rgba(20,22,40,0.96); border: 1px solid rgba(251,191,36,0.25);
-    border-radius: 20px; padding: 30px 34px; max-width: 420px; width: 90%;
-    box-shadow: 0 0 60px rgba(251,191,36,0.07), 0 20px 60px rgba(0,0,0,0.5);
-    transform: translateY(16px); transition: transform 0.25s;
-  }
+  .modal-box { background: rgba(20,22,40,0.96); border: 1px solid rgba(251,191,36,0.25); border-radius: 20px; padding: 30px 34px; max-width: 420px; width: 90%; box-shadow: 0 0 60px rgba(251,191,36,0.07), 0 20px 60px rgba(0,0,0,0.5); transform: translateY(16px); transition: transform 0.25s; }
   .modal-overlay.show .modal-box { transform: translateY(0); }
   .modal-icon { font-size: 34px; margin-bottom: 12px; display: block; }
   .modal-title { font-size: 15px; font-weight: 700; color: var(--warning); margin-bottom: 10px; }
   .modal-text { font-size: 15px; line-height: 1.7; color: var(--text-secondary); }
-  .modal-close {
-    margin-top: 22px; width: 100%; padding: 11px; border-radius: 10px;
-    background: rgba(251,191,36,0.1); border: 1.5px solid rgba(251,191,36,0.3);
-    color: var(--warning); font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: all 0.2s;
-  }
+  .modal-close { margin-top: 22px; width: 100%; padding: 11px; border-radius: 10px; background: rgba(251,191,36,0.1); border: 1.5px solid rgba(251,191,36,0.3); color: var(--warning); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .modal-close:hover { background: rgba(251,191,36,0.2); }
 
-  /* ── Finish Screen ── */
-  .finish-screen {
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 48px 32px; flex: 1;
-    animation: fadeSlide 0.4s ease;
-  }
+  .finish-screen { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px 32px; flex: 1; animation: fadeSlide 0.4s ease; }
   .finish-screen.show { display: flex; }
   .finish-icon { font-size: 64px; margin-bottom: 20px; }
   .finish-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
   .finish-sub { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
-  .finish-score {
-    font-size: 56px; font-weight: 800;
-    background: linear-gradient(135deg, var(--accent-light), #ec4899);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    margin-bottom: 8px;
-  }
+  .finish-score { font-size: 56px; font-weight: 800; background: linear-gradient(135deg, var(--accent-light), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
   .finish-score-label { font-size: 14px; color: var(--text-muted); margin-bottom: 36px; }
-  .finish-restart {
-    padding: 14px 36px; border-radius: 14px;
-    background: linear-gradient(135deg, var(--accent), #9580ff);
-    border: none; color: #fff; font-size: 16px; font-weight: 600;
-    cursor: pointer; box-shadow: 0 4px 20px var(--accent-glow);
-    transition: all 0.2s;
-  }
+  .finish-restart { padding: 14px 36px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), #9580ff); border: none; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px var(--accent-glow); transition: all 0.2s; }
   .finish-restart:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,109,245,0.5); }
 
   /* ── Mobile Responsive ── */
   @media (max-width: 768px) {
-    .app {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr auto;
-      grid-template-areas: "header" "main" "sidebar";
-    }
+    .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; grid-template-areas: "header" "tabs" "main" "sidebar"; }
     .sidebar { border-left: none; border-top: 1px solid var(--glass-border); max-height: 250px; }
     .main { padding: 16px; }
     .question-card { padding: 20px; }
@@ -332,6 +290,9 @@
     </div>
     <div class="header-meta" id="headerMeta"></div>
   </header>
+
+  <div class="test-tabs" id="testTabs">
+    </div>
 
   <main class="main" id="mainArea">
     <div class="question-card" id="questionCard">
@@ -357,11 +318,11 @@
 
     <div class="finish-screen" id="finishScreen">
       <div class="finish-icon">🏆</div>
-      <div class="finish-title">Quiz Tamamlandı!</div>
+      <div class="finish-title">Test Tamamlandı!</div>
       <div class="finish-sub">İşte sonuçların</div>
       <div class="finish-score" id="finishScore"></div>
       <div class="finish-score-label" id="finishScoreLabel"></div>
-      <button class="finish-restart" onclick="resetAll()">Tekrar Çöz</button>
+      <button class="finish-restart" onclick="resetAll()">Bu Testi Tekrar Çöz</button>
     </div>
   </main>
 
@@ -373,7 +334,7 @@
       <div class="stat-row"><span>Yanlış</span><span class="stat-val danger" id="statWrong">0</span></div>
       <div class="stat-row"><span>İlerleme</span><span class="stat-val accent" id="statPercent">0%</span></div>
     </div>
-    <button class="reset-btn" onclick="resetAll()">🗑 Sıfırla</button>
+    <button class="reset-btn" onclick="resetAll()">🗑 Testi Sıfırla</button>
   </aside>
 </div>
 
@@ -387,71 +348,113 @@
 </div>
 
 <script>
-// ─── DATA (45 Mock Test Questions) ───────────────────────────
-const questions = [
-  { category: "Week 2 - Counseling Profession", text: "What unites all counselors across different settings (e.g., school, mental health, career)?", choices: ["A) Medical training and prescription rights", "B) Basic communication skills, a common knowledge base, and shared professional goals", "C) The exact same daily schedules and administrative duties", "D) Strict focus solely on vocational placement"], correct: 1, hint: "Counselors share a foundation in psychological/sociological theories and a goal to support human growth, even if their specific populations differ." },
-  { category: "Week 2 - The Counseling Lens", text: "The \"Counseling Lens\" is grounded in counseling theories, human development, and a commitment to improving what?", choices: ["A) Only the individual student's test scores", "B) The physical infrastructure of the school", "C) Systems and relationships", "D) Strict disciplinary measures"], correct: 2, hint: "The focus goes beyond just \"fixing\" a student to changing the broader context and relationships they exist in." },
-  { category: "Week 2 - Need for Counseling", text: "Why is professional counseling necessary in a school setting alongside academic instruction?", choices: ["A) Because students develop personally, socially, and vocationally while they learn.", "B) Because teachers do not have the time to speak to students at all.", "C) Because schools are required by law to provide medical treatments.", "D) Because counselors must replace the disciplinary role of the principal."], correct: 0, hint: "Development in school is not solely about academics; it encompasses the whole person." },
-  { category: "Week 2 - Core Questions", text: "When people seek counseling, their concerns are usually relational. Which of the following is a typical core human question brought to counseling?", choices: ["A) \"How can I memorize this textbook?\"", "B) \"Where do I belong?\"", "C) \"How do I fix my computer?\"", "D) \"What is the capital of France?\""], correct: 1, hint: "The fundamental questions usually revolve around identity, connection with others, and future direction." },
-  { category: "Week 2 - Historical Shifts", text: "Which major event/influence in the 1940s helped shift counseling from a counselor-centered view to a \"growth-oriented\" relationship?", choices: ["A) The invention of the internet", "B) Carl Rogers' client-centered approach", "C) The strict behavioral models of the 1920s", "D) The No Child Left Behind Act"], correct: 1, hint: "This psychologist challenged the therapist-centered views of Freudian psychoanalysis by emphasizing empathy and the helping relationship." },
-  { category: "Week 2 - Role Confusion", text: "What is a common misperception that creates role confusion, where counselors are given schedules that prevent them from running comprehensive programs?", choices: ["A) Viewing the counselor as a strict disciplinarian", "B) Viewing the counselor as a medical doctor", "C) Viewing the counselor as a \"special classroom teacher\" meant to give other teachers breaks", "D) Viewing the counselor as an administrative assistant"], correct: 2, hint: "This view traps counselors in non-counseling instructional duties rather than allowing them to implement targeted services." },
-  { category: "Week 2 - Role Confusion 2", text: "If a counselor is kept apart from teachers and their work is seen as \"mysterious,\" which misperception is occurring?", choices: ["A) The counselor as a special classroom teacher", "B) The counselor as a \"therapist or magician\"", "C) The counselor as a principal", "D) The counselor as a substitute teacher"], correct: 1, hint: "This view leads to weak accountability for measuring the actual educational value of their services." },
-  { category: "Week 2 - Counseling in Türkiye", text: "What has been a central theme regarding the evolution of the counseling profession in Türkiye?", choices: ["A) It has completely rejected all Western cultural patterns.", "B) It is striving to define its identity while balancing cultural fit and system constraints.", "C) It focuses entirely on physical education and sports.", "D) It has never been implemented in secondary schools."], correct: 1, hint: "Social science disciplines often struggle when trying to apply models to local culture in rapidly changing developing countries." },
-  { category: "Week 3 - Counselor Duties", text: "According to MONE regulations, which of the following is a core duty of the psychological counselor regarding psychosocial support?", choices: ["A) Providing support during difficult life events (disasters, abuse) and making referrals.", "B) Grading all math and science exams.", "C) Punishing students who break school rules.", "D) Teaching foreign language classes."], correct: 0, hint: "This role handles major crises and connects students to outside help when the need exceeds their scope." },
-  { category: "Week 4 - Special Education Scope", text: "When determining special education procedures, what are the two \"big questions\" teachers typically need answered?", choices: ["A) How much does the test cost and who pays for it?", "B) How do we decide if a student's need is a disability, and what is my role once they are eligible?", "C) Which college will the student attend and what is their major?", "D) How do I excuse the student from all homework and exams?"], correct: 1, hint: "Teachers need to understand the eligibility pathway and how they fit into implementing services and placements." },
-  { category: "Week 4 - General Education Role", text: "Why is the general education teacher central to the special education referral process?", choices: ["A) They are the only ones legally allowed to diagnose autism.", "B) They have to pay for the individualized education plan (IEP).", "C) They act as the school psychologist during standardized testing.", "D) They have the most direct day-to-day knowledge of the student and implement initial classroom interventions."], correct: 3, hint: "Because they see the student daily, they are the first to notice patterns, document evidence, and try adjustments." },
-  { category: "Week 4 - Deciding Need", text: "If many students in a classroom are struggling with the material, what should the teacher reflect on first before suspecting a disability in a specific student?", choices: ["A) Adjust the curriculum and instructional approach.", "B) Immediately refer all struggling students to RAM.", "C) Ignore the problem and wait for the next semester.", "D) Send the students to the principal's office."], correct: 0, hint: "If it's a whole-class issue, the content might be beyond reach or the teaching method might not be working for that group." },
-  { category: "Week 4 - Pre-Referral Steps", text: "Before a formal special education referral is made, what are the crucial next steps a teacher must take?", choices: ["A) Expel the student to protect the other children.", "B) Contact parents, consult colleagues, try instructional changes, and document efforts.", "C) Diagnose the student immediately using an online test.", "D) Tell the student they cannot participate in class anymore."], correct: 1, hint: "Teachers must gather holistic information and attempt classroom-level adjustments before formalizing the RAM process." },
-  { category: "Week 5 - Low-Incidence Definition", text: "Which of the following is a characteristic of \"low-incidence disabilities\"?", choices: ["A) They account for less than 20% of all students with disabilities but often require highly specialized supports.", "B) They are the most common disabilities in schools.", "C) They only include mild learning disabilities.", "D) They do not require any inclusive planning."], correct: 0, hint: "Though less frequent, these students (e.g., those with severe autism, multiple disabilities) need intensive, individualized educational supports." },
-  { category: "Week 5 - Low-Incidence Categories", text: "Which of the following conditions is classified as a low-incidence disability?", choices: ["A) Specific learning disability", "B) Mild intellectual disability", "C) Autism spectrum disorders and multiple disabilities", "D) ADHD"], correct: 2, hint: "These groups require significant collaboration, specialized communication tools, and often physical/medical accommodations." },
-  { category: "Week 5 - High-Incidence Definition", text: "High-incidence disabilities account for approximately what percentage of all students with disabilities?", choices: ["A) 20%", "B) 50%", "C) 80%", "D) 100%"], correct: 2, hint: "They are the most common groups (like learning disabilities or speech impairments) teachers will encounter in inclusive classrooms." },
-  { category: "Week 5 - High-Incidence Needs", text: "What kind of instructional support do students with high-incidence disabilities (like learning and behavioral disabilities) typically need?", choices: ["A) Segregation in a separate school", "B) Explicit instruction, structured classrooms, and accommodations", "C) Complete removal of all academic expectations", "D) Only physical and medical mobility aids"], correct: 1, hint: "They usually need adjustments in how they are taught or assessed, rather than major curriculum lowering." },
-  { category: "Week 5 - Other Special Needs", text: "Which of the following groups has serious educational needs but may NOT qualify for formal special education services (IEPs)?", choices: ["A) Students with deaf-blindness", "B) Students with moderate intellectual disabilities", "C) Students with ADHD, gifted students, and students at risk for school failure", "D) Students with severe orthopedic impairments"], correct: 2, hint: "Remember the rule: \"No IEP\" does not mean these students have no special needs. They still require meaningful support." },
-  { category: "Week 5 - ADHD", text: "How is ADHD correctly characterized in a school setting?", choices: ["A) It is simply a child having \"high energy.\"", "B) It is a clinically diagnosed disorder involving difficulty regulating attention and behavior.", "C) It is a severe intellectual disability.", "D) It is a temporary phase that requires no teacher intervention."], correct: 1, hint: "The core issue is chronic impulsivity, inattention, or hyperactivity beyond what is typical for the child's age." },
-  { category: "Week 7 - Central Argument", text: "According to Kottler & Kottler, why are counseling skills presented as an essential part of effective teaching?", choices: ["A) Because teachers are expected to earn secondary degrees in psychology.", "B) Because teachers inevitably work in helping roles, whether they feel prepared for them or not.", "C) Because schools are eliminating professional counselors to save money.", "D) Because teaching involves strictly delivering content with no interpersonal contact."], correct: 1, hint: "Students turn to teachers for help organically, making these skills a daily necessity in the classroom." },
-  { category: "Week 7 - Defining Counseling Skills", text: "In the context of teaching, \"counseling skills\" are best defined as:", choices: ["A) Tools to conduct long-term psychoanalysis with students.", "B) Helping and consulting skills to build trust, assess concerns, and understand students deeply.", "C) Methods to legally discipline and expel students.", "D) Techniques to diagnose medical disorders in the classroom."], correct: 1, hint: "They make the teacher a capable first responder to interpersonal and developmental needs without acting as a therapist." },
-  { category: "Week 7 - Student Expectations", text: "Students may expect a teacher to provide the \"right\" answer to their personal lives or take over their problems. Why is this problematic?", choices: ["A) These expectations are unrealistic, impractical, or inappropriate.", "B) It is illegal for a teacher to speak to a student.", "C) Teachers already have the perfect solutions to all life problems.", "D) Students should only talk to their parents."], correct: 0, hint: "Teachers do not have the time for ongoing counseling dialogue and should not remove a student's personal responsibility for their choices." },
-  { category: "Week 7 - Concluding Point", text: "Teaching is richer and more demanding than a narrow academic model suggests because:", choices: ["A) Teachers must memorize the entire curriculum.", "B) Teaching already includes helping work, making counseling skills necessary for a humane approach.", "C) Teachers are paid based on how many students they diagnose.", "D) Schools require teachers to perform medical procedures."], correct: 1, hint: "A skillful teacher acts as a trusted adult, listener, and model, not just an information delivery system." },
-  { category: "Week 7 - Helping Attitudes", text: "Which of the following represents crucial attitudes required for effective helping in the classroom?", choices: ["A) Judgment and strictness", "B) Indifference and neglect", "C) Authenticity, genuineness, respect, and compassion", "D) Authoritarian control"], correct: 2, hint: "Helping works best when it comes from a clear, respectful mindset rather than just technique alone." },
-  { category: "Week 8 - Learning Helping Skills", text: "Why is professional helping considered \"not fully natural\"?", choices: ["A) Because human beings naturally hate each other.", "B) Because it requires a computer algorithm to calculate the correct response.", "C) Because it requires restraint, patience, nonjudgment, and full attention.", "D) Because it forces teachers to speak in a different language."], correct: 2, hint: "In normal, everyday conversations, people often interrupt, judge, or think about what they will say next. Helping requires a disciplined mental shift." },
-  { category: "Week 8 - Beginner Mistakes", text: "What is a common mistake that beginning helpers make?", choices: ["A) Listening too carefully.", "B) Rushing to give advice, fix the problem, or take over.", "C) Referring the student to a professional immediately.", "D) Showing too much empathy."], correct: 1, hint: "Doing too much can create dependence or place the responsibility on the teacher instead of the student." },
-  { category: "Week 8 - Entering Helping Mode", text: "Before trying to help, a teacher should shift into a \"focused mental state.\" This simple routine includes:", choices: ["A) Thinking about what to cook for dinner.", "B) Clearing the mind of distractions, taking a deep breath, and suspending judgment.", "C) Immediately telling the student they are wrong.", "D) Writing a disciplinary referral."], correct: 1, hint: "This inner preparation ensures your attention is fully available for the student in that moment." },
-  { category: "Week 8 - Task Facilitation", text: "In the Action stage of helping, what does \"Task Facilitation\" mean?", choices: ["A) Forcing the student to complete a math worksheet.", "B) Grading the student's personal problems.", "C) Helping the student leave the conversation with one realistic next step.", "D) Telling the principal about the student's secrets."], correct: 2, hint: "Because \"insight without action often fades quickly,\" giving the student a concrete, manageable thing to do is vital." },
-  { category: "Week 8 - The 5 Stages", text: "What are the five main stages of the helping process?", choices: ["A) Assessment, Exploration, Understanding, Action, Evaluation", "B) Introduction, Body, Conclusion, Reference, Index", "C) Denial, Anger, Bargaining, Depression, Acceptance", "D) Planning, Drafting, Editing, Revising, Publishing"], correct: 0, hint: "These stages give you a map of where you are and what the student needs next." },
-  { category: "Week 8 - Evaluation Stage", text: "What is the primary purpose of the \"Evaluation\" stage in the helping process?", choices: ["A) To give the student a letter grade from A to F.", "B) To review what has changed, what still needs work, and whether more support is needed.", "C) To criticize the student's choices.", "D) To officially diagnose a psychological disorder."], correct: 1, hint: "This stage helps both the teacher and student take stock of progress and judge if referral is necessary." },
-  { category: "Week 8 - Stages and Skills 1", text: "Which set of skills is most closely associated with the \"Assessment\" stage?", choices: ["A) Goal setting and role-playing", "B) Interpreting and confronting", "C) Attending, listening, focusing, and observing", "D) Questioning and summarizing"], correct: 2, hint: "Before you explore deeply or take action, you must first gather information and pay close attention to the presenting issue." },
-  { category: "Week 8 - Stages and Skills 2", text: "Which stage heavily utilizes the skills of \"reflecting feelings, responding to content, and empathy\"?", choices: ["A) Action", "B) Exploration", "C) Evaluation", "D) Assessment"], correct: 1, hint: "Once the main concern is clear, you use these skills to go deeper into meanings, connections, and underlying emotions." },
-  { category: "Week 8 - Teacher's Ultimate Aim", text: "What is the most realistic goal for a teacher acting as a helper?", choices: ["A) To completely fix every problem a student has in one session.", "B) To provide long-term psychotherapy for years.", "C) To be a concerned, skillful, trustworthy first responder who guides the student to the next step.", "D) To ignore the emotional issue and focus solely on the curriculum."], correct: 2, hint: "Teachers don't always need to finish all five stages; listening carefully and referring appropriately is often the best outcome." },
-  { category: "Week 8 - Referral", text: "Which of the following statements about \"Referral\" is true?", choices: ["A) Referral means the teacher has failed the student.", "B) Referral is a normal and responsible part of helping when needs exceed the teacher's role.", "C) Referral should be used as a threat for misbehavior.", "D) Referral is only for students who are failing academically."], correct: 1, hint: "Connecting the student to a counselor or mental health professional is often a successful outcome of a helping conversation." },
-  { category: "Week 9 - Recognizing OCD", text: "A student exhibits intrusive thoughts, repetitive rituals, and anxiety-reducing behaviors that interfere with their school functioning. What condition does this pattern likely represent?", choices: ["A) Eating Disorder", "B) Substance Abuse", "C) Obsessive-Compulsive Disorder (OCD)", "D) Specific Learning Disability"], correct: 2, hint: "The key signs are repetitive rituals meant to reduce overwhelming anxiety." },
-  { category: "Week 10 - Self-Monitoring", text: "When a teacher intentionally redirects their thoughts from \"She should know better\" to \"My role is not to judge first, but to understand,\" what skill are they practicing?", choices: ["A) Active inner self-correction / self-monitoring", "B) Reflecting feelings", "C) Task facilitation", "D) Confrontation"], correct: 0, hint: "Helpful responding often requires managing and redirecting your own critical or judgmental thoughts internally before you speak." },
-  { category: "Week 10 - Specific Questions", text: "In what scenario are direct and specific questions (e.g., \"Do you have a plan? Do you have the means?\") absolutely necessary rather than intrusive?", choices: ["A) When a student forgets their homework.", "B) When a student complains about a bad grade.", "C) When a student expresses potentially dangerous or suicidal thoughts.", "D) When a student is daydreaming in class."], correct: 2, hint: "Vague exploration is a mistake when a child's safety is at immediate risk; direct questioning protects the child." },
-  { category: "Week 10 - Reflecting Content", text: "What is the primary purpose of a \"good content reflection\"?", choices: ["A) To parrot exactly what the student said word-for-word.", "B) To acknowledge, clarify, and gently direct attention to what matters most in the student's story.", "C) To immediately solve the problem for the student.", "D) To tell the student they are wrong."], correct: 1, hint: "It is a thoughtful restatement of meaning that proves you are following the conversation carefully." },
-  { category: "Week 10 - The Sequence of Helping", text: "According to the \"Whole Review\" of helping skills, what must a teacher do before relationship building and exploration can happen?", choices: ["A) Confront the student", "B) Set a strict academic goal", "C) Engage in inner preparation (clearing the mind, focusing attention, monitoring attitudes)", "D) Contact the principal"], correct: 2, hint: "The interaction begins in your own mind before you even speak your first sentence." },
-  { category: "Week 11 - Process Groups", text: "Process groups differ from ordinary classroom groups primarily because they emphasize:", choices: ["A) Solving math equations quickly", "B) Feelings, values, reactions, and group dynamics", "C) Memorizing historical dates", "D) Strict teacher-centered lectures"], correct: 1, hint: "These groups focus on the emotional and relational undercurrents rather than just academic content." },
-  { category: "Week 13 - Why Consult", text: "Why is consultation considered a sign of professional strength rather than weakness?", choices: ["A) It means the teacher can force someone else to do their grading.", "B) It gives teachers access to expertise, perspective, support, and resources they cannot provide alone.", "C) It proves the teacher is unqualified to be in a classroom.", "D) It allows the teacher to gossip about students legally."], correct: 1, hint: "No teacher can handle every complex personal or psychological issue alone; seeking shared expertise protects the student and improves decisions." },
-  { category: "Week 13 - Whole Review", text: "Which of the following best summarizes the expectations for teachers regarding student support?", choices: ["A) They must handle all counseling internally to avoid bothering the administration.", "B) They should ignore all emotional needs and focus solely on academic instruction.", "C) Effective teachers combine instruction, care, boundaries, consultation, and referral when needed.", "D) They must diagnose all mental health disorders before referring a student."], correct: 2, hint: "Teachers use helping skills but maintain clear role boundaries by connecting students to specialized help." },
-  { category: "Week 5 - Inclusion Reality", text: "In a classroom, a student with a low-incidence disability requires what type of specific educational approach?", choices: ["A) Lowered expectations and invisibility", "B) Complete exclusion from general education", "C) Standardized teaching without any modifications", "D) Highly individualized supports, collaboration, and inclusive planning"], correct: 3, hint: "Meaningful inclusion for these students requires participation and access, not just physical placement in the room." },
-  { category: "Week 5 - High-Incidence Reality", text: "Which of the following is typically TRUE for students with high-incidence disabilities?", choices: ["A) They account for a very small minority (less than 20%) of special education students.", "B) They usually have severe sensory or physical impairments.", "C) They often spend most of the day in general education classes and need accommodations.", "D) They never experience peer relationship problems."], correct: 2, hint: "Because they are common (e.g., learning disabilities), they are heavily integrated into regular classrooms but need targeted support to bypass barriers." },
-  { category: "Week 8 - Reinforcement", text: "During the \"Action\" stage of helping, if a teacher encourages healthier behavior but responds less supportively to self-defeating behavior (while still caring for the student unconditionally), what strategy are they using?", choices: ["A) Rehearsal", "B) Referral", "C) Evaluation", "D) Reinforcement"], correct: 3, hint: "This involves guiding the student toward constructive choices by validating positive steps and avoiding the reward of negative patterns." }
-];
+// ─── DATA (YENİ TEST EKLENECEK ALAN) ─────────────────────────
+// BURASI ÇOK ÖNEMLİ: Yeni testleri sadece bu "allTests" objesinin içine 
+// "Mock Test 2": [ ... ], "Mock Test 3": [ ... ] şeklinde eklemen yeterli. 
+// Sistem yukarıdaki butonları ve alt yapıyı otomatik ayarlayacak.
+
+const allTests = {
+  "Mock Test 1": [
+    { category: "Week 2 - Counseling Profession", text: "What unites all counselors across different settings (e.g., school, mental health, career)?", choices: ["A) Medical training and prescription rights", "B) Basic communication skills, a common knowledge base, and shared professional goals", "C) The exact same daily schedules and administrative duties", "D) Strict focus solely on vocational placement"], correct: 1, hint: "Counselors share a foundation in psychological/sociological theories and a goal to support human growth, even if their specific populations differ." },
+    { category: "Week 2 - The Counseling Lens", text: "The \"Counseling Lens\" is grounded in counseling theories, human development, and a commitment to improving what?", choices: ["A) Only the individual student's test scores", "B) The physical infrastructure of the school", "C) Systems and relationships", "D) Strict disciplinary measures"], correct: 2, hint: "The focus goes beyond just \"fixing\" a student to changing the broader context and relationships they exist in." },
+    { category: "Week 2 - Need for Counseling", text: "Why is professional counseling necessary in a school setting alongside academic instruction?", choices: ["A) Because students develop personally, socially, and vocationally while they learn.", "B) Because teachers do not have the time to speak to students at all.", "C) Because schools are required by law to provide medical treatments.", "D) Because counselors must replace the disciplinary role of the principal."], correct: 0, hint: "Development in school is not solely about academics; it encompasses the whole person." },
+    { category: "Week 2 - Core Questions", text: "When people seek counseling, their concerns are usually relational. Which of the following is a typical core human question brought to counseling?", choices: ["A) \"How can I memorize this textbook?\"", "B) \"Where do I belong?\"", "C) \"How do I fix my computer?\"", "D) \"What is the capital of France?\""], correct: 1, hint: "The fundamental questions usually revolve around identity, connection with others, and future direction." },
+    { category: "Week 2 - Historical Shifts", text: "Which major event/influence in the 1940s helped shift counseling from a counselor-centered view to a \"growth-oriented\" relationship?", choices: ["A) The invention of the internet", "B) Carl Rogers' client-centered approach", "C) The strict behavioral models of the 1920s", "D) The No Child Left Behind Act"], correct: 1, hint: "This psychologist challenged the therapist-centered views of Freudian psychoanalysis by emphasizing empathy and the helping relationship." },
+    { category: "Week 2 - Role Confusion", text: "What is a common misperception that creates role confusion, where counselors are given schedules that prevent them from running comprehensive programs?", choices: ["A) Viewing the counselor as a strict disciplinarian", "B) Viewing the counselor as a medical doctor", "C) Viewing the counselor as a \"special classroom teacher\" meant to give other teachers breaks", "D) Viewing the counselor as an administrative assistant"], correct: 2, hint: "This view traps counselors in non-counseling instructional duties rather than allowing them to implement targeted services." },
+    { category: "Week 2 - Role Confusion 2", text: "If a counselor is kept apart from teachers and their work is seen as \"mysterious,\" which misperception is occurring?", choices: ["A) The counselor as a special classroom teacher", "B) The counselor as a \"therapist or magician\"", "C) The counselor as a principal", "D) The counselor as a substitute teacher"], correct: 1, hint: "This view leads to weak accountability for measuring the actual educational value of their services." },
+    { category: "Week 2 - Counseling in Türkiye", text: "What has been a central theme regarding the evolution of the counseling profession in Türkiye?", choices: ["A) It has completely rejected all Western cultural patterns.", "B) It is striving to define its identity while balancing cultural fit and system constraints.", "C) It focuses entirely on physical education and sports.", "D) It has never been implemented in secondary schools."], correct: 1, hint: "Social science disciplines often struggle when trying to apply models to local culture in rapidly changing developing countries." },
+    { category: "Week 3 - Counselor Duties", text: "According to MONE regulations, which of the following is a core duty of the psychological counselor regarding psychosocial support?", choices: ["A) Providing support during difficult life events (disasters, abuse) and making referrals.", "B) Grading all math and science exams.", "C) Punishing students who break school rules.", "D) Teaching foreign language classes."], correct: 0, hint: "This role handles major crises and connects students to outside help when the need exceeds their scope." },
+    { category: "Week 4 - Special Education Scope", text: "When determining special education procedures, what are the two \"big questions\" teachers typically need answered?", choices: ["A) How much does the test cost and who pays for it?", "B) How do we decide if a student's need is a disability, and what is my role once they are eligible?", "C) Which college will the student attend and what is their major?", "D) How do I excuse the student from all homework and exams?"], correct: 1, hint: "Teachers need to understand the eligibility pathway and how they fit into implementing services and placements." },
+    { category: "Week 4 - General Education Role", text: "Why is the general education teacher central to the special education referral process?", choices: ["A) They are the only ones legally allowed to diagnose autism.", "B) They have to pay for the individualized education plan (IEP).", "C) They act as the school psychologist during standardized testing.", "D) They have the most direct day-to-day knowledge of the student and implement initial classroom interventions."], correct: 3, hint: "Because they see the student daily, they are the first to notice patterns, document evidence, and try adjustments." },
+    { category: "Week 4 - Deciding Need", text: "If many students in a classroom are struggling with the material, what should the teacher reflect on first before suspecting a disability in a specific student?", choices: ["A) Adjust the curriculum and instructional approach.", "B) Immediately refer all struggling students to RAM.", "C) Ignore the problem and wait for the next semester.", "D) Send the students to the principal's office."], correct: 0, hint: "If it's a whole-class issue, the content might be beyond reach or the teaching method might not be working for that group." },
+    { category: "Week 4 - Pre-Referral Steps", text: "Before a formal special education referral is made, what are the crucial next steps a teacher must take?", choices: ["A) Expel the student to protect the other children.", "B) Contact parents, consult colleagues, try instructional changes, and document efforts.", "C) Diagnose the student immediately using an online test.", "D) Tell the student they cannot participate in class anymore."], correct: 1, hint: "Teachers must gather holistic information and attempt classroom-level adjustments before formalizing the RAM process." },
+    { category: "Week 5 - Low-Incidence Definition", text: "Which of the following is a characteristic of \"low-incidence disabilities\"?", choices: ["A) They account for less than 20% of all students with disabilities but often require highly specialized supports.", "B) They are the most common disabilities in schools.", "C) They only include mild learning disabilities.", "D) They do not require any inclusive planning."], correct: 0, hint: "Though less frequent, these students (e.g., those with severe autism, multiple disabilities) need intensive, individualized educational supports." },
+    { category: "Week 5 - Low-Incidence Categories", text: "Which of the following conditions is classified as a low-incidence disability?", choices: ["A) Specific learning disability", "B) Mild intellectual disability", "C) Autism spectrum disorders and multiple disabilities", "D) ADHD"], correct: 2, hint: "These groups require significant collaboration, specialized communication tools, and often physical/medical accommodations." },
+    { category: "Week 5 - High-Incidence Definition", text: "High-incidence disabilities account for approximately what percentage of all students with disabilities?", choices: ["A) 20%", "B) 50%", "C) 80%", "D) 100%"], correct: 2, hint: "They are the most common groups (like learning disabilities or speech impairments) teachers will encounter in inclusive classrooms." },
+    { category: "Week 5 - High-Incidence Needs", text: "What kind of instructional support do students with high-incidence disabilities (like learning and behavioral disabilities) typically need?", choices: ["A) Segregation in a separate school", "B) Explicit instruction, structured classrooms, and accommodations", "C) Complete removal of all academic expectations", "D) Only physical and medical mobility aids"], correct: 1, hint: "They usually need adjustments in how they are taught or assessed, rather than major curriculum lowering." },
+    { category: "Week 5 - Other Special Needs", text: "Which of the following groups has serious educational needs but may NOT qualify for formal special education services (IEPs)?", choices: ["A) Students with deaf-blindness", "B) Students with moderate intellectual disabilities", "C) Students with ADHD, gifted students, and students at risk for school failure", "D) Students with severe orthopedic impairments"], correct: 2, hint: "Remember the rule: \"No IEP\" does not mean these students have no special needs. They still require meaningful support." },
+    { category: "Week 5 - ADHD", text: "How is ADHD correctly characterized in a school setting?", choices: ["A) It is simply a child having \"high energy.\"", "B) It is a clinically diagnosed disorder involving difficulty regulating attention and behavior.", "C) It is a severe intellectual disability.", "D) It is a temporary phase that requires no teacher intervention."], correct: 1, hint: "The core issue is chronic impulsivity, inattention, or hyperactivity beyond what is typical for the child's age." },
+    { category: "Week 7 - Central Argument", text: "According to Kottler & Kottler, why are counseling skills presented as an essential part of effective teaching?", choices: ["A) Because teachers are expected to earn secondary degrees in psychology.", "B) Because teachers inevitably work in helping roles, whether they feel prepared for them or not.", "C) Because schools are eliminating professional counselors to save money.", "D) Because teaching involves strictly delivering content with no interpersonal contact."], correct: 1, hint: "Students turn to teachers for help organically, making these skills a daily necessity in the classroom." },
+    { category: "Week 7 - Defining Counseling Skills", text: "In the context of teaching, \"counseling skills\" are best defined as:", choices: ["A) Tools to conduct long-term psychoanalysis with students.", "B) Helping and consulting skills to build trust, assess concerns, and understand students deeply.", "C) Methods to legally discipline and expel students.", "D) Techniques to diagnose medical disorders in the classroom."], correct: 1, hint: "They make the teacher a capable first responder to interpersonal and developmental needs without acting as a therapist." },
+    { category: "Week 7 - Student Expectations", text: "Students may expect a teacher to provide the \"right\" answer to their personal lives or take over their problems. Why is this problematic?", choices: ["A) These expectations are unrealistic, impractical, or inappropriate.", "B) It is illegal for a teacher to speak to a student.", "C) Teachers already have the perfect solutions to all life problems.", "D) Students should only talk to their parents."], correct: 0, hint: "Teachers do not have the time for ongoing counseling dialogue and should not remove a student's personal responsibility for their choices." },
+    { category: "Week 7 - Concluding Point", text: "Teaching is richer and more demanding than a narrow academic model suggests because:", choices: ["A) Teachers must memorize the entire curriculum.", "B) Teaching already includes helping work, making counseling skills necessary for a humane approach.", "C) Teachers are paid based on how many students they diagnose.", "D) Schools require teachers to perform medical procedures."], correct: 1, hint: "A skillful teacher acts as a trusted adult, listener, and model, not just an information delivery system." },
+    { category: "Week 7 - Helping Attitudes", text: "Which of the following represents crucial attitudes required for effective helping in the classroom?", choices: ["A) Judgment and strictness", "B) Indifference and neglect", "C) Authenticity, genuineness, respect, and compassion", "D) Authoritarian control"], correct: 2, hint: "Helping works best when it comes from a clear, respectful mindset rather than just technique alone." },
+    { category: "Week 8 - Learning Helping Skills", text: "Why is professional helping considered \"not fully natural\"?", choices: ["A) Because human beings naturally hate each other.", "B) Because it requires a computer algorithm to calculate the correct response.", "C) Because it requires restraint, patience, nonjudgment, and full attention.", "D) Because it forces teachers to speak in a different language."], correct: 2, hint: "In normal, everyday conversations, people often interrupt, judge, or think about what they will say next. Helping requires a disciplined mental shift." },
+    { category: "Week 8 - Beginner Mistakes", text: "What is a common mistake that beginning helpers make?", choices: ["A) Listening too carefully.", "B) Rushing to give advice, fix the problem, or take over.", "C) Referring the student to a professional immediately.", "D) Showing too much empathy."], correct: 1, hint: "Doing too much can create dependence or place the responsibility on the teacher instead of the student." },
+    { category: "Week 8 - Entering Helping Mode", text: "Before trying to help, a teacher should shift into a \"focused mental state.\" This simple routine includes:", choices: ["A) Thinking about what to cook for dinner.", "B) Clearing the mind of distractions, taking a deep breath, and suspending judgment.", "C) Immediately telling the student they are wrong.", "D) Writing a disciplinary referral."], correct: 1, hint: "This inner preparation ensures your attention is fully available for the student in that moment." },
+    { category: "Week 8 - Task Facilitation", text: "In the Action stage of helping, what does \"Task Facilitation\" mean?", choices: ["A) Forcing the student to complete a math worksheet.", "B) Grading the student's personal problems.", "C) Helping the student leave the conversation with one realistic next step.", "D) Telling the principal about the student's secrets."], correct: 2, hint: "Because \"insight without action often fades quickly,\" giving the student a concrete, manageable thing to do is vital." },
+    { category: "Week 8 - The 5 Stages", text: "What are the five main stages of the helping process?", choices: ["A) Assessment, Exploration, Understanding, Action, Evaluation", "B) Introduction, Body, Conclusion, Reference, Index", "C) Denial, Anger, Bargaining, Depression, Acceptance", "D) Planning, Drafting, Editing, Revising, Publishing"], correct: 0, hint: "These stages give you a map of where you are and what the student needs next." },
+    { category: "Week 8 - Evaluation Stage", text: "What is the primary purpose of the \"Evaluation\" stage in the helping process?", choices: ["A) To give the student a letter grade from A to F.", "B) To review what has changed, what still needs work, and whether more support is needed.", "C) To criticize the student's choices.", "D) To officially diagnose a psychological disorder."], correct: 1, hint: "This stage helps both the teacher and student take stock of progress and judge if referral is necessary." },
+    { category: "Week 8 - Stages and Skills 1", text: "Which set of skills is most closely associated with the \"Assessment\" stage?", choices: ["A) Goal setting and role-playing", "B) Interpreting and confronting", "C) Attending, listening, focusing, and observing", "D) Questioning and summarizing"], correct: 2, hint: "Before you explore deeply or take action, you must first gather information and pay close attention to the presenting issue." },
+    { category: "Week 8 - Stages and Skills 2", text: "Which stage heavily utilizes the skills of \"reflecting feelings, responding to content, and empathy\"?", choices: ["A) Action", "B) Exploration", "C) Evaluation", "D) Assessment"], correct: 1, hint: "Once the main concern is clear, you use these skills to go deeper into meanings, connections, and underlying emotions." },
+    { category: "Week 8 - Teacher's Ultimate Aim", text: "What is the most realistic goal for a teacher acting as a helper?", choices: ["A) To completely fix every problem a student has in one session.", "B) To provide long-term psychotherapy for years.", "C) To be a concerned, skillful, trustworthy first responder who guides the student to the next step.", "D) To ignore the emotional issue and focus solely on the curriculum."], correct: 2, hint: "Teachers don't always need to finish all five stages; listening carefully and referring appropriately is often the best outcome." },
+    { category: "Week 8 - Referral", text: "Which of the following statements about \"Referral\" is true?", choices: ["A) Referral means the teacher has failed the student.", "B) Referral is a normal and responsible part of helping when needs exceed the teacher's role.", "C) Referral should be used as a threat for misbehavior.", "D) Referral is only for students who are failing academically."], correct: 1, hint: "Connecting the student to a counselor or mental health professional is often a successful outcome of a helping conversation." },
+    { category: "Week 9 - Recognizing OCD", text: "A student exhibits intrusive thoughts, repetitive rituals, and anxiety-reducing behaviors that interfere with their school functioning. What condition does this pattern likely represent?", choices: ["A) Eating Disorder", "B) Substance Abuse", "C) Obsessive-Compulsive Disorder (OCD)", "D) Specific Learning Disability"], correct: 2, hint: "The key signs are repetitive rituals meant to reduce overwhelming anxiety." },
+    { category: "Week 10 - Self-Monitoring", text: "When a teacher intentionally redirects their thoughts from \"She should know better\" to \"My role is not to judge first, but to understand,\" what skill are they practicing?", choices: ["A) Active inner self-correction / self-monitoring", "B) Reflecting feelings", "C) Task facilitation", "D) Confrontation"], correct: 0, hint: "Helpful responding often requires managing and redirecting your own critical or judgmental thoughts internally before you speak." },
+    { category: "Week 10 - Specific Questions", text: "In what scenario are direct and specific questions (e.g., \"Do you have a plan? Do you have the means?\") absolutely necessary rather than intrusive?", choices: ["A) When a student forgets their homework.", "B) When a student complains about a bad grade.", "C) When a student expresses potentially dangerous or suicidal thoughts.", "D) When a student is daydreaming in class."], correct: 2, hint: "Vague exploration is a mistake when a child's safety is at immediate risk; direct questioning protects the child." },
+    { category: "Week 10 - Reflecting Content", text: "What is the primary purpose of a \"good content reflection\"?", choices: ["A) To parrot exactly what the student said word-for-word.", "B) To acknowledge, clarify, and gently direct attention to what matters most in the student's story.", "C) To immediately solve the problem for the student.", "D) To tell the student they are wrong."], correct: 1, hint: "It is a thoughtful restatement of meaning that proves you are following the conversation carefully." },
+    { category: "Week 10 - The Sequence of Helping", text: "According to the \"Whole Review\" of helping skills, what must a teacher do before relationship building and exploration can happen?", choices: ["A) Confront the student", "B) Set a strict academic goal", "C) Engage in inner preparation (clearing the mind, focusing attention, monitoring attitudes)", "D) Contact the principal"], correct: 2, hint: "The interaction begins in your own mind before you even speak your first sentence." },
+    { category: "Week 11 - Process Groups", text: "Process groups differ from ordinary classroom groups primarily because they emphasize:", choices: ["A) Solving math equations quickly", "B) Feelings, values, reactions, and group dynamics", "C) Memorizing historical dates", "D) Strict teacher-centered lectures"], correct: 1, hint: "These groups focus on the emotional and relational undercurrents rather than just academic content." },
+    { category: "Week 13 - Why Consult", text: "Why is consultation considered a sign of professional strength rather than weakness?", choices: ["A) It means the teacher can force someone else to do their grading.", "B) It gives teachers access to expertise, perspective, support, and resources they cannot provide alone.", "C) It proves the teacher is unqualified to be in a classroom.", "D) It allows the teacher to gossip about students legally."], correct: 1, hint: "No teacher can handle every complex personal or psychological issue alone; seeking shared expertise protects the student and improves decisions." },
+    { category: "Week 13 - Whole Review", text: "Which of the following best summarizes the expectations for teachers regarding student support?", choices: ["A) They must handle all counseling internally to avoid bothering the administration.", "B) They should ignore all emotional needs and focus solely on academic instruction.", "C) Effective teachers combine instruction, care, boundaries, consultation, and referral when needed.", "D) They must diagnose all mental health disorders before referring a student."], correct: 2, hint: "Teachers use helping skills but maintain clear role boundaries by connecting students to specialized help." },
+    { category: "Week 5 - Inclusion Reality", text: "In a classroom, a student with a low-incidence disability requires what type of specific educational approach?", choices: ["A) Lowered expectations and invisibility", "B) Complete exclusion from general education", "C) Standardized teaching without any modifications", "D) Highly individualized supports, collaboration, and inclusive planning"], correct: 3, hint: "Meaningful inclusion for these students requires participation and access, not just physical placement in the room." },
+    { category: "Week 5 - High-Incidence Reality", text: "Which of the following is typically TRUE for students with high-incidence disabilities?", choices: ["A) They account for a very small minority (less than 20%) of special education students.", "B) They usually have severe sensory or physical impairments.", "C) They often spend most of the day in general education classes and need accommodations.", "D) They never experience peer relationship problems."], correct: 2, hint: "Because they are common (e.g., learning disabilities), they are heavily integrated into regular classrooms but need targeted support to bypass barriers." },
+    { category: "Week 8 - Reinforcement", text: "During the \"Action\" stage of helping, if a teacher encourages healthier behavior but responds less supportively to self-defeating behavior (while still caring for the student unconditionally), what strategy are they using?", choices: ["A) Rehearsal", "B) Referral", "C) Evaluation", "D) Reinforcement"], correct: 3, hint: "This involves guiding the student toward constructive choices by validating positive steps and avoiding the reward of negative patterns." }
+  ],
+  "Mock Test 2": [
+    {
+      category: "Örnek Kategori",
+      text: "Bu, sistemi denemek için eklenmiş örnek bir sorudur. Burayı silip kendi sorularını yazabilirsin.",
+      choices: ["A) Seçenek 1", "B) Seçenek 2", "C) Seçenek 3", "D) Seçenek 4"],
+      correct: 0,
+      hint: "Örnek ipucu metni."
+    }
+  ]
+};
 
 const KEYS = ['A', 'B', 'C', 'D'];
-const STORAGE_KEY = 'quiz_mc_v3_mock';
+let activeTestKey = Object.keys(allTests)[0]; // Varsayılan ilk test
+let questions = allTests[activeTestKey];
+let state = loadState(activeTestKey);
 
-// ─── STATE ───────────────────────────────────────────────────
-let state = loadState();
+// ─── INIT TABS ───────────────────────────────────────────────
+function initTabs() {
+  const tabsContainer = document.getElementById('testTabs');
+  tabsContainer.innerHTML = '';
+  
+  Object.keys(allTests).forEach(testName => {
+    const btn = document.createElement('button');
+    btn.className = `test-tab-btn ${testName === activeTestKey ? 'active' : ''}`;
+    btn.textContent = testName;
+    btn.onclick = () => switchTest(testName);
+    tabsContainer.appendChild(btn);
+  });
+}
 
-function loadState() {
+function switchTest(testName) {
+  if(activeTestKey === testName) return;
+  activeTestKey = testName;
+  questions = allTests[activeTestKey];
+  state = loadState(activeTestKey);
+  initTabs(); // Active class güncellemesi için
+  render();
+}
+
+// ─── STATE MANAGEMENT ────────────────────────────────────────
+function getStorageKey(testName) {
+  return `quiz_arena_${testName.replace(/\s+/g, '_')}`;
+}
+
+function loadState(testName) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageKey(testName));
     if (raw) return JSON.parse(raw);
   } catch(e) {}
   return { current: 0, answers: {}, finished: false };
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(getStorageKey(activeTestKey), JSON.stringify(state));
 }
 
 // ─── RENDER ──────────────────────────────────────────────────
@@ -459,7 +462,7 @@ function render() {
   const total = questions.length;
   const answeredKeys = Object.keys(state.answers).filter(k => state.answers[k] !== undefined);
   const answeredCount = answeredKeys.length;
-  const pct = Math.round((answeredCount / total) * 100);
+  const pct = Math.round((answeredCount / total) * 100) || 0;
 
   let correctCount = 0;
   let wrongCount = 0;
@@ -534,9 +537,7 @@ function render() {
       }
     }
     
-    // Temiz metin göstermek için "A) " kısmını kesiyoruz, format uymuyorsa tamamını gösteriyoruz
     const cleanText = text.match(/^[A-Z]\)\s(.*)/) ? text.match(/^[A-Z]\)\s(.*)/)[1] : text;
-    
     btn.innerHTML = `<span class="choice-key">${KEYS[i]}</span><span class="choice-text">${cleanText}</span>`;
     btn.onclick = () => selectAnswer(i);
     container.appendChild(btn);
@@ -578,9 +579,9 @@ function jumpTo(i) {
 }
 
 function resetAll() {
-  if (!state.finished && !confirm('Tüm cevaplar silinecek. Emin misin?')) return;
+  if (!state.finished && !confirm('Bu testteki tüm cevapların silinecek. Emin misin?')) return;
   state = { current: 0, answers: {}, finished: false };
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(getStorageKey(activeTestKey));
   render();
 }
 
@@ -602,7 +603,8 @@ document.addEventListener('keydown', e => {
   if (map[e.key.toLowerCase()] !== undefined) selectAnswer(map[e.key.toLowerCase()]);
 });
 
-// ─── INIT ────────────────────────────────────────────────────
+// ─── START ───────────────────────────────────────────────────
+initTabs();
 render();
 </script>
 </body>
