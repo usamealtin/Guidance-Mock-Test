@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Arena</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-deep: #0d0f1a;
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --glass-hover: rgba(255,255,255,0.10);
+    --accent: #7c6df5;
+    --accent-glow: rgba(124,109,245,0.35);
+    --accent-light: #a394ff;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --text-primary: #e8e6f0;
+    --text-secondary: #9892b8;
+    --text-muted: #5e5a7a;
+    --answered: rgba(124,109,245,0.25);
+    --answered-border: rgba(124,109,245,0.6);
+    --active-bg: rgba(124,109,245,0.4);
+    --active-border: rgba(164,148,255,0.9);
+  }
+  html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg-deep); color: var(--text-primary); overflow: hidden; }
+
+  .bg-blobs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.18; animation: drift 20s ease-in-out infinite alternate; }
+  .blob-1 { width: 500px; height: 500px; background: #7c6df5; top: -150px; left: -100px; }
+  .blob-2 { width: 400px; height: 400px; background: #ec4899; top: 60%; right: -120px; animation-delay: -7s; }
+  .blob-3 { width: 300px; height: 300px; background: #06b6d4; bottom: -80px; left: 35%; animation-delay: -13s; }
+  @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.08); } }
+
+  /* ── App Layout ── */
+  .app {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "header header" "testnav testnav" "main sidebar";
+    height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    grid-area: header;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 24px;
+    background: rgba(13,15,26,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), #ec4899);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .header h1 { font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .progress-bar-wrap { flex: 1; height: 5px; background: var(--glass-bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--glass-border); }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); border-radius: 99px; transition: width 0.4s ease; box-shadow: 0 0 8px var(--accent-glow); }
+  .header-meta { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+
+  /* ── Test Nav Bar ── */
+  .test-nav {
+    grid-area: testnav;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 24px;
+    background: rgba(13,15,26,0.7);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--glass-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .test-nav::-webkit-scrollbar { display: none; }
+  .test-nav-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; margin-right: 4px; }
+  .test-tab {
+    padding: 6px 16px; border-radius: 8px;
+    border: 1.5px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--text-secondary);
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+  }
+  .test-tab:hover { background: var(--glass-hover); color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
+  .test-tab.active {
+    background: var(--active-bg); border-color: var(--active-border);
+    color: #fff; box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .test-tab .tab-progress { font-size: 10px; color: var(--accent-light); margin-left: 4px; font-weight: 400; }
+  .test-tab.active .tab-progress { color: rgba(255,255,255,0.7); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    grid-area: sidebar;
+    display: flex; flex-direction: column;
+    background: rgba(13,15,26,0.5); backdrop-filter: blur(24px);
+    border-left: 1px solid var(--glass-border);
+    padding: 16px 14px;
+    overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent;
+  }
+  .sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--glass-border); }
+  .optic-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  .optic-btn {
+    aspect-ratio: 1; border-radius: 7px;
+    border: 1.5px solid var(--glass-border); background: var(--glass-bg);
+    color: var(--text-muted); font-size: 10px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 1px;
+    transition: all 0.15s ease; position: relative;
+  }
+  .optic-btn:hover { background: var(--glass-hover); border-color: rgba(255,255,255,0.22); color: var(--text-primary); transform: scale(1.08); }
+  .optic-btn.answered { background: var(--answered); border-color: var(--answered-border); color: var(--accent-light); }
+  .optic-btn.active { background: var(--active-bg); border-color: var(--active-border); color: #fff; box-shadow: 0 0 10px var(--accent-glow); }
+  .optic-btn .choice-badge { font-size: 8px; font-weight: 700; color: var(--success); line-height: 1; }
+  .optic-btn:not(.answered) .choice-badge { display: none; }
+
+  .sidebar-stats { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary); background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 7px; padding: 7px 10px; }
+  .stat-val { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+  .stat-val.accent { color: var(--accent-light); }
+  .reset-btn { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; margin-top: 10px; padding: 8px; border-radius: 8px; background: rgba(248,113,113,0.06); border: 1.5px solid rgba(248,113,113,0.2); color: rgba(248,113,113,0.6); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .reset-btn:hover { background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.4); color: var(--danger); }
+
+  /* ── Main ── */
+  .main { grid-area: main; display: flex; flex-direction: column; padding: 20px 28px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
+
+  .question-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 18px; backdrop-filter: blur(20px);
+    padding: 24px 28px; flex: 1; display: flex; flex-direction: column;
+    animation: fadeSlide 0.28s ease;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  @keyframes fadeSlide { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .q-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .q-number-badge { display: flex; align-items: center; gap: 10px; }
+  .q-num { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #a394ff); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #fff; box-shadow: 0 4px 12px var(--accent-glow); flex-shrink: 0; }
+  .q-meta { display: flex; flex-direction: column; gap: 2px; }
+  .q-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
+  .q-category { font-size: 12px; color: var(--accent-light); font-weight: 500; }
+
+  .hint-btn { display: flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 9px; border: 1.5px solid rgba(251,191,36,0.3); background: rgba(251,191,36,0.06); color: var(--warning); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+  .hint-btn:hover { background: rgba(251,191,36,0.14); border-color: rgba(251,191,36,0.6); box-shadow: 0 0 10px rgba(251,191,36,0.2); }
+
+  .question-text { font-size: 16px; font-weight: 500; line-height: 1.7; color: var(--text-primary); margin-bottom: 20px; }
+
+  /* ── Choices ── */
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+  .choice-btn {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 11px;
+    border: 1.5px solid var(--glass-border); background: rgba(255,255,255,0.04);
+    color: var(--text-primary); cursor: pointer; text-align: left;
+    transition: all 0.15s ease; font-size: 14px; font-family: 'Inter', sans-serif;
+  }
+  .choice-btn:hover:not(.selected) { background: rgba(124,109,245,0.08); border-color: rgba(124,109,245,0.35); transform: translateX(3px); }
+  .choice-btn.selected { background: rgba(124,109,245,0.18); border-color: var(--accent); color: #fff; box-shadow: 0 0 0 1px rgba(124,109,245,0.3), 0 4px 18px rgba(124,109,245,0.2); }
+  .choice-btn.selected .choice-key { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+  .choice-key { width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0; border: 1.5px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text-secondary); background: rgba(255,255,255,0.05); transition: all 0.15s ease; }
+  .choice-text { flex: 1; line-height: 1.5; }
+
+  /* ── Nav ── */
+  .nav-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .nav-btn { display: flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 11px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1.5px solid var(--glass-border); background: var(--glass-bg); color: var(--text-primary); backdrop-filter: blur(10px); }
+  .nav-btn:hover:not(:disabled) { background: var(--glass-hover); border-color: rgba(255,255,255,0.25); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary { background: linear-gradient(135deg, var(--accent), #9580ff); border-color: transparent; color: #fff; box-shadow: 0 4px 18px var(--accent-glow); }
+  .nav-btn.primary:hover:not(:disabled) { box-shadow: 0 6px 26px rgba(124,109,245,0.5); }
+  .nav-center { font-size: 12px; color: var(--text-muted); }
+
+  /* ── Hint Modal ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box { background: rgba(20,22,40,0.97); border: 1px solid rgba(251,191,36,0.25); border-radius: 18px; padding: 28px 30px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); transform: translateY(14px); transition: transform 0.25s; }
+  .modal-overlay.show .modal-box { transform: translateY(0); }
+  .modal-icon { font-size: 30px; margin-bottom: 10px; display: block; }
+  .modal-title { font-size: 14px; font-weight: 700; color: var(--warning); margin-bottom: 10px; }
+  .modal-text { font-size: 14px; line-height: 1.75; color: var(--text-secondary); }
+  .modal-close { margin-top: 20px; width: 100%; padding: 10px; border-radius: 9px; background: rgba(251,191,36,0.1); border: 1.5px solid rgba(251,191,36,0.3); color: var(--warning); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .modal-close:hover { background: rgba(251,191,36,0.2); }
+
+  /* ── Finish Screen ── */
+  .finish-screen { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 28px; flex: 1; animation: fadeSlide 0.4s ease; }
+  .finish-screen.show { display: flex; }
+  .finish-icon { font-size: 56px; margin-bottom: 16px; }
+  .finish-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .finish-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+  .finish-score { font-size: 52px; font-weight: 800; background: linear-gradient(135deg, var(--accent-light), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
+  .finish-score-label { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+  .finish-actions { display: flex; gap: 12px; }
+  .finish-restart { padding: 12px 28px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), #9580ff); border: none; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 18px var(--accent-glow); transition: all 0.2s; }
+  .finish-restart:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,109,245,0.5); }
+</style>
+</head>
+<body>
+<div class="bg-blobs">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<div class="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-icon">🧠</div>
+    <h1>Quiz Arena</h1>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="header-meta" id="headerMeta"></div>
+  </header>
+
+  <!-- Test Nav -->
+  <div class="test-nav" id="testNav">
+    <span class="test-nav-label">Test:</span>
+  </div>
+
+  <!-- Main -->
+  <main class="main" id="mainArea">
+    <div class="question-card" id="questionCard">
+      <div class="q-header">
+        <div class="q-number-badge">
+          <div class="q-num" id="qNum">1</div>
+          <div class="q-meta">
+            <span class="q-label">Soru</span>
+            <span class="q-category" id="qCategory"></span>
+          </div>
+        </div>
+        <button class="hint-btn" onclick="showHint()">💡 İpucu</button>
+      </div>
+      <p class="question-text" id="questionText"></p>
+      <div class="choices" id="choicesContainer"></div>
+    </div>
+    <nav class="nav-bar" id="navBar">
+      <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← Önceki</button>
+      <span class="nav-center" id="navCounter"></span>
+      <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Sonraki →</button>
+    </nav>
+    <div class="finish-screen" id="finishScreen">
+      <div class="finish-icon">🏆</div>
+      <div class="finish-title">Test Tamamlandı!</div>
+      <div class="finish-sub" id="finishTestName"></div>
+      <div class="finish-score" id="finishScore"></div>
+      <div class="finish-score-label">doğru cevap</div>
+      <div class="finish-actions">
+        <button class="finish-restart" onclick="resetCurrentTest()">↺ Tekrar Çöz</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-label">📋 Optik Form</div>
+    <div class="optic-grid" id="opticGrid"></div>
+    <div class="sidebar-stats">
+      <div class="stat-row"><span>Yanıtlandı</span><span class="stat-val accent" id="statAnswered">0</span></div>
+      <div class="stat-row"><span>Boş</span><span class="stat-val" id="statEmpty">0</span></div>
+      <div class="stat-row"><span>İlerleme</span><span class="stat-val accent" id="statPercent">0%</span></div>
+    </div>
+    <button class="reset-btn" onclick="resetCurrentTest()">🗑 Bu Testi Sıfırla</button>
+  </aside>
+</div>
+
+<!-- Hint Modal -->
+<div class="modal-overlay" id="hintModal" onclick="closeHint(event)">
+  <div class="modal-box">
+    <span class="modal-icon">💡</span>
+    <div class="modal-title">İpucu</div>
+    <p class="modal-text" id="hintText"></p>
+    <button class="modal-close" onclick="closeHintDirect()">Anladım ✓</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+const TESTS = {
+  mock3: {
+    label: "Mock Test 3",
+    questions: [
+      {
+        category: "Week 2 - Counseling Profession",
+        text: "Which of the following is NOT one of the shared professional core elements that unite all counselors regardless of their specific work setting?",
+        choices: ["Basic communication and helping skills","A shared goal to support growth and improve systems","A common knowledge base in psychology and human development","An exclusive focus on administrative discipline and scheduling"],
+        correct: 3,
+        hint: "Counselors are united by communication skills, psychological theories, and a commitment to systemic improvement, not by administrative or disciplinary duties."
+      },
+      {
+        category: "Week 2 - Equity Focus",
+        text: "What is the primary \"Equity Goal\" of school counselors when providing leadership and services?",
+        choices: ["To ensure every student achieves the exact same exam score.","To ensure students have equal opportunity to reach educational goals and choose suitable career directions.","To force all students into vocational training programs.","To replace the principal as the primary disciplinarian."],
+        correct: 1,
+        hint: "School counselors lead programs so that all students have an equal chance to develop as fully functioning members of society."
+      },
+      {
+        category: "Week 2 - Historical Background",
+        text: "What major event in the early 20th century served as a catalyst for the rapid expansion of standardized group testing in U.S. schools?",
+        choices: ["The Great Depression","World War I and the military's need to screen and classify draftees","The launch of Sputnik","The establishment of the first RAM in Türkiye"],
+        correct: 1,
+        hint: "The military's use of intelligence testing to classify soldiers was later adapted by schools, catapulting group measurement techniques into education."
+      },
+      {
+        category: "Week 3 - MONE Regulations",
+        text: "According to the MONE Guidance and Psychological Counseling Services Regulation, what is the strict rule regarding a student's \"Counselee/Client file\" (Danışan dosyası)?",
+        choices: ["It must be shared with the entire teaching staff every semester.","It can only be opened by the school principal.","It stores private information and cannot be shared without consent, except during official judicial or administrative investigations.","It is published on the school's public website for accountability."],
+        correct: 2,
+        hint: "This file holds confidential data and privacy is legally protected unless there is a formal legal exception."
+      },
+      {
+        category: "Week 3 - Program Cycle",
+        text: "In the Turkish school counseling program cycle, what critical step happens in May each year to prepare for the next year's program?",
+        choices: ["The school counselor takes a one-month vacation.","A Needs Analysis is conducted using test and non-test techniques to determine students' needs.","All special education students are transferred to a new school.","The principal rewrites the national curriculum."],
+        correct: 1,
+        hint: "Programs must be data-based, so determining the actual needs of the students before planning the targets is a legally required step."
+      },
+      {
+        category: "Week 4 - IEP/BEP Development",
+        text: "Who is legally required to chair the BEP (IEP) Development Unit in a Turkish school?",
+        choices: ["The special education teacher","The Guidance and Research Center (RAM) director","The school principal or a vice principal assigned by the principal","The student's parent"],
+        correct: 2,
+        hint: "While the unit includes counselors and teachers, the administrative leadership of the unit falls to the school administration."
+      },
+      {
+        category: "Week 4 - Pre-Referral Steps",
+        text: "Before initiating a formal referral to RAM for a suspected disability, what is the teacher's primary responsibility regarding documentation?",
+        choices: ["To write a medical prescription for ADHD medication.","To document the student's needs, performance, and the instructional adjustments already attempted in class.","To secretly record the student without parental knowledge.","To formally diagnose the student with autism."],
+        correct: 1,
+        hint: "RAM needs evidence of what the school has already observed and tried (via the Educational Evaluation Request Form) to make a proper assessment."
+      },
+      {
+        category: "Week 4 - Placement Decisions",
+        text: "After RAM completes an educational evaluation, who makes the official decision regarding the student's placement in a public school in Türkiye?",
+        choices: ["The classroom teacher","The Provincial/District Special Education Services Board","The school counselor","The Ministry of Health"],
+        correct: 1,
+        hint: "RAM evaluates and recommends, but the official legal placement is finalized by this regional board."
+      },
+      {
+        category: "Week 5 - Low-Incidence Disabilities",
+        text: "Which of the following conditions is classified as a \"low-incidence\" disability?",
+        choices: ["Specific Learning Disability","Mild Intellectual Disability","Speech and Language Impairment","Multiple Disabilities and Deaf-Blindness"],
+        correct: 3,
+        hint: "These conditions occur less frequently (under 20% of all disabilities) but require highly intensive and specialized supports."
+      },
+      {
+        category: "Week 5 - ID Challenges",
+        text: "Students with moderate to severe intellectual disabilities typically struggle with \"generalization.\" What does this mean for the teacher?",
+        choices: ["The student will memorize facts instantly.","Skills learned in one setting may not automatically transfer to another setting, requiring practice across different contexts.","The student will refuse to speak to peers.","The student will only learn through auditory lectures."],
+        correct: 1,
+        hint: "Because they struggle to apply a learned skill to a new situation, teachers must explicitly teach and practice skills in meaningful, varied contexts."
+      },
+      {
+        category: "Week 5 - High-Incidence Realities",
+        text: "Which of the following is a shared feature of students with high-incidence disabilities (like learning disabilities or ADHD)?",
+        choices: ["They are usually blind or deaf.","They are often \"invisible\" or hard to distinguish from peers outside of school, leading teachers to sometimes misread their struggles as laziness.","They require full-time hospitalization.","They never experience social or behavioral difficulties."],
+        correct: 1,
+        hint: "Because their disabilities are cognitive or language-based rather than physical, their academic failures are sometimes unfairly blamed on lack of effort."
+      },
+      {
+        category: "Week 5 - Universal Design",
+        text: "According to the \"Master Blueprint for an Inclusive Classroom,\" what is the most effective way to handle a diverse class?",
+        choices: ["Wait for students to fail before offering help.","Design the classroom for variability from the start, using multiple representations and clear routines, rather than planning for an \"average\" student.","Send all diverse learners to the principal's office immediately.","Lower all academic expectations so no one feels challenged."],
+        correct: 1,
+        hint: "Good teaching anticipates differences. Planning for diverse needs proactively reduces the need for reactive crisis management."
+      },
+      {
+        category: "Week 5 - Labels vs. Instruction",
+        text: "What is a critical principle regarding special education labels (like ASD or LD) in the classroom?",
+        choices: ["A label dictates the exact lesson plan you must use.","Labels are useless and should be completely ignored.","Labels open access to services, but they do not dictate how to teach; individual observation must drive daily instruction.","A label means the general education teacher is no longer responsible for the student."],
+        correct: 2,
+        hint: "A diagnostic label is a starting point, but the practical question is always about what that specific student needs to participate and learn."
+      },
+      {
+        category: "Week 7 - Central Argument",
+        text: "What is the \"Central Argument\" for why teachers must learn counseling skills?",
+        choices: ["Because schools can no longer afford psychological counselors.","Because teachers are legally required to practice psychotherapy.","Because teaching is both instructional work and relational helping work; students inevitably turn to teachers for help.","Because it is the only way to get a promotion."],
+        correct: 2,
+        hint: "Teachers influence students as mentors, caregivers, and role models, making helping an unavoidable part of the job."
+      },
+      {
+        category: "Week 7 - Why Teachers?",
+        text: "Why are students often more likely to approach a teacher with a personal crisis rather than a specialized professional?",
+        choices: ["Because teachers can prescribe medication.","Because visibility, access, and repeated daily contact build the trust necessary for a student to open up.","Because teachers have less work to do.","Because specialized professionals do not care about students."],
+        correct: 1,
+        hint: "Students usually seek out the adults they know best and see most often in their everyday school life."
+      },
+      {
+        category: "Week 8 - Beginner Mistakes",
+        text: "What is a common mistake that beginning helpers make when a student shares a problem?",
+        choices: ["Listening carefully without interrupting.","Rushing to give advice, fix the issue, or take over the problem completely.","Summarizing the student's feelings.","Asking open-ended questions."],
+        correct: 1,
+        hint: "Trying to solve the student's whole life in one conversation can lead to poor advice or create dependence. A good helper often just listens and clarifies first."
+      },
+      {
+        category: "Week 8 - Receptivity",
+        text: "In the core processes of helping, what happens when a student feels \"Receptivity\"?",
+        choices: ["They become completely defensive.","They feel less threatened, emotionally safer, and become more open to influence and reflection.","They immediately solve their own problem.","They stop talking entirely."],
+        correct: 1,
+        hint: "Helping works better when the student's perceived threat decreases, making them willing to engage."
+      },
+      {
+        category: "Week 8 - Emotional Expression",
+        text: "Why is \"Catharsis\" (Emotional Expression) considered a highly effective helping process?",
+        choices: ["It allows the teacher to yell at the student.","It forces the student to admit they broke a rule.","It provides a safe place for the student to say painful things aloud without judgment, which reduces emotional pressure.","It officially diagnoses a mental health disorder."],
+        correct: 2,
+        hint: "Simply being heard and releasing hidden fears or anger helps a student think more clearly."
+      },
+      {
+        category: "Week 8 - Helping Stages",
+        text: "Which stage of the helping process is focused on identifying the student's main concern and gathering the background needed to understand the situation?",
+        choices: ["Action","Evaluation","Assessment","Understanding"],
+        correct: 2,
+        hint: "Before you can explore deeply, you must first clarify what happened and what is bothering the student right now."
+      },
+      {
+        category: "Week 8 - Action Stage",
+        text: "During the \"Action\" stage, the teacher uses \"Task Facilitation.\" What does this mean?",
+        choices: ["Giving the student a massive, life-changing goal.","Helping the student leave the conversation with one realistic, specific, and small next step.","Telling the student exactly what to do.","Doing the student's homework for them."],
+        correct: 1,
+        hint: "Because insight fades quickly, identifying a concrete action turns understanding into movement."
+      },
+      {
+        category: "Week 8 - Evaluation Questions",
+        text: "Which of the following is a highly useful question to ask during the \"Evaluation\" stage of helping?",
+        choices: ["\"Why did you ignore my advice?\"","\"What feels different now, and what still feels unresolved?\"","\"Do you know how busy I am?\"","\"Can you promise to never be sad again?\""],
+        correct: 1,
+        hint: "Evaluation is about reviewing what improved, what was learned, and whether more support is needed."
+      },
+      {
+        category: "Week 8 - Referral Truth",
+        text: "Which of the following statements about referring a student to a professional is true?",
+        choices: ["Referral means the teacher has failed to help.","Referral should only be used as a threat.","Referral is a normal, responsible part of helping, and often a successful outcome of a good first conversation.","Referral means the teacher will never speak to the student again."],
+        correct: 2,
+        hint: "Recognizing the limits of your time, role, and training is professional. Guiding a student to specialized help is a victory."
+      },
+      {
+        category: "Week 9 - Avoiding Diagnosis",
+        text: "When assessing a student's concerning behavioral pattern, what is the most important rule for a teacher?",
+        choices: ["Focus on careful assessment and gathering data, but avoid making an amateur psychological diagnosis.","Immediately label the student with a clinical disorder.","Tell the class about the student's problem.","Ignore the pattern until it causes a physical fight."],
+        correct: 0,
+        hint: "Teachers observe patterns and form hypotheses to decide the next action, but diagnosing pathology is strictly outside their professional role."
+      },
+      {
+        category: "Week 10 - Inner Preparation",
+        text: "According to the sequence of helping, helping actually begins before you speak. How?",
+        choices: ["By writing a referral form.","By consciously entering a state of concentration, pushing aside your own worries, and deciding to be fully present.","By thinking of the perfect piece of advice to give.","By organizing your desk."],
+        correct: 1,
+        hint: "A deep breath and clearing your mind ensures you are emotionally available and not distracted by \"mental noise\"."
+      },
+      {
+        category: "Week 10 - Attending",
+        text: "What does the skill of \"Attending\" communicate to the student?",
+        choices: ["\"I am judging you.\"","\"I am distracted.\"","\"I am here, giving you my total, undivided interest through my posture and presence.\"","\"I am analyzing your mental health.\""],
+        correct: 2,
+        hint: "Attending is the first visible helping skill; it opens the door to trust by showing the student they matter."
+      },
+      {
+        category: "Week 10 - Reflecting Feelings",
+        text: "A student says, \"I'm upset.\" The teacher explores further and reflects, \"It sounds like you're actually feeling a lot of pressure and shame.\" Why is reflecting feelings so important?",
+        choices: ["It makes the student feel worse.","It shifts the student from vague distress to clearer self-understanding, making them better able to think and act.","It gives the teacher a chance to talk about themselves.","It forces the student to cry."],
+        correct: 1,
+        hint: "Clarifying the specific emotion underneath a general statement helps the student realize they are truly understood."
+      },
+      {
+        category: "Week 10 - Self-Disclosure",
+        text: "When should a teacher use \"Self-Disclosure\" in a helping conversation?",
+        choices: ["Constantly, to show they have suffered too.","Never; teachers must be completely mysterious.","Conservatively; it should be brief, purposeful, and used to show the student they are not alone.","Only to complain about the school administration."],
+        correct: 2,
+        hint: "Appropriate self-disclosure makes the teacher seem genuine, but it must not take the focus away from the student's needs."
+      },
+      {
+        category: "Week 10 - Confrontation",
+        text: "How does a skillful confrontation sound in a helping conversation?",
+        choices: ["Accusatory and loud.","\"I'm confused. Help me understand... You say this matters, but you also said you never study.\"","\"You are lying to me and I know it.\"","\"If you don't change, you will fail.\""],
+        correct: 1,
+        hint: "The best confrontations are careful, neutral, and point out discrepancies so respectfully that the student does not feel attacked."
+      },
+      {
+        category: "Week 11 - High Expectations",
+        text: "What is the true nature of setting \"High Expectations\" for students?",
+        choices: ["Applying cold, relentless pressure.","Communicating faith in the student's potential through a combination of challenge, optimism, support, and belief.","Giving students work that is impossible to complete.","Punishing students for every minor mistake."],
+        correct: 1,
+        hint: "A teacher who expects growth communicates \"I believe you can do this, and I will help you get there\"."
+      },
+      {
+        category: "Week 11 - Effective Praise",
+        text: "To ensure praise actually motivates a student rather than feeling like \"vague flattery,\" it must be:",
+        choices: ["Given loudly in front of everyone, regardless of the student's feelings.","Given to every student every five minutes.","Deserved, concrete, specific to the accomplishment, and connected to real effort.","Focused entirely on the student's innate intelligence."],
+        correct: 2,
+        hint: "Strong praise shows the student exactly what was done well and reinforces progress and persistence."
+      },
+      {
+        category: "Week 11 - Group Settings",
+        text: "Why are classroom group discussions also considered a form of helping?",
+        choices: ["Because they are easier for the teacher to grade.","Because group settings can support emotional growth, perspective-taking, and constructive discussion alongside one-to-one talks.","Because the teacher doesn't have to speak.","Because students can argue without consequences."],
+        correct: 1,
+        hint: "While private conversations offer intimacy, group settings allow students to learn from peers and practice social skills."
+      },
+      {
+        category: "Week 12 - Problem Solving",
+        text: "During a parent-teacher conference, what does the \"Problem Solving\" phase primarily involve?",
+        choices: ["Complaining about the student's behavior.","Moving from a description of the issue to shared goals, identifying obstacles, and focusing on what can be done next.","Forcing the parents to discipline the child at home.","The teacher dictating a strict plan with no input."],
+        correct: 1,
+        hint: "This stage emphasizes areas of agreement and clarifies exactly who will do what to help the student succeed."
+      },
+      {
+        category: "Week 13 - The Principal",
+        text: "Why is it highly recommended for a teacher to invite the principal into the classroom for positive reasons (e.g., student accomplishments)?",
+        choices: ["To get a higher salary.","Because building professional trust through ordinary positive contact makes it much easier to ask for help during a crisis.","To make other teachers jealous.","To trick the principal into doing the grading."],
+        correct: 1,
+        hint: "A relationship built only around crisis often feels evaluative and threatening. Positive contact builds a supportive foundation."
+      },
+      {
+        category: "Week 13 - Referral Conditions",
+        text: "A referral to a school counselor is most likely to be successful when:",
+        choices: ["The teacher does it behind the student's back.","The student feels the teacher's concern, understands what counseling is, and commits to taking the next step.","The teacher threatens the student with a referral for bad behavior.","The student is forced to go by the principal."],
+        correct: 1,
+        hint: "Referral is a guided transition; it works best when the student trusts the teacher and views the counselor as a helpful resource, not a punishment."
+      },
+      {
+        category: "Week 13 - School-Based Teams",
+        text: "In Türkiye, what is the primary purpose of discussing a student concern with a School-Based Team before initiating a formal RAM evaluation?",
+        choices: ["To gossip about the student.","To try classroom-level strategies first, coordinate internal resources, and prevent premature formal testing.","To immediately expel the student.","To avoid doing any paperwork."],
+        correct: 1,
+        hint: "These teams utilize the expertise of counselors and other teachers to find solutions within the school before escalating to external diagnosis."
+      },
+      {
+        category: "Week 13 - Teacher's Central Role",
+        text: "Even when multiple specialists are involved in a student's IEP (BEP), why does the general education teacher remain a central link?",
+        choices: ["Because they are the only ones allowed to sign the document.","Because they usually have the most direct knowledge of the student's daily functioning and coordinate information.","Because they are legally responsible for all medical care.","Because specialists never speak to parents."],
+        correct: 1,
+        hint: "The teacher sees the student every day, makes classroom adaptations, and is often the first to notice changes in performance."
+      },
+      {
+        category: "Week 13 - Case Decision",
+        text: "In a Turkish school, if a student suddenly becomes withdrawn, isolated, and stops doing homework, whom should the teacher typically consult first to understand the underlying issue?",
+        choices: ["The police","The School Psychological Counselor (Rehberlik Servisi)","The Ministry of Education directly","A private psychiatrist"],
+        correct: 1,
+        hint: "The school counselor is the immediate internal expert to help assess emotional withdrawal and decide if further referral or family contact is needed."
+      },
+      {
+        category: "Week 14 - Self-Talk",
+        text: "What is \"Self-Talk\" in the context of a teacher's emotional regulation?",
+        choices: ["Talking out loud to the classroom walls.","The internal language a teacher uses to interpret events, which strongly shapes how they feel and respond to stress.","A specialized vocabulary used only in special education.","Ignoring all negative emotions permanently."],
+        correct: 1,
+        hint: "The way you talk to yourself after a difficult student encounter (e.g., \"This is terrible\" vs. \"This is challenging but manageable\") dictates your emotional reaction."
+      },
+      {
+        category: "Week 14 - Externalized Language",
+        text: "Which of the following phrases is an example of Externalized Language, which reduces a teacher's sense of professional control?",
+        choices: ["\"I allowed myself to get upset.\"","\"I chose to react strictly.\"","\"That student made me so angry; it's not my fault.\"","\"I can manage this situation.\""],
+        correct: 2,
+        hint: "Externalized language places all the blame on outside forces, leaving the teacher feeling helpless, whereas internalized language recognizes the teacher's power to choose their response."
+      },
+      {
+        category: "Week 14 - Cognitive Distortions",
+        text: "If a teacher has one bad lesson and thinks, \"I am a terrible teacher and I will never be good at this,\" what pattern of distorted thinking are they using?",
+        choices: ["Positive Reframing","Empathic Resonance","Overgeneralizing / Exaggerating","Task Facilitation"],
+        correct: 2,
+        hint: "Taking one negative event and turning it into an absolute, permanent truth (\"never\", \"always\") is a classic cognitive distortion that spikes stress."
+      },
+      {
+        category: "Week 14 - Counseling Yourself",
+        text: "Why is \"Counseling Yourself\" considered an essential practice for teachers?",
+        choices: ["Because it saves money on therapy.","Because teachers cannot teach emotional balance and healthy coping to students if they never practice it themselves.","Because it is a required MONE exam topic.","Because it allows teachers to diagnose their own medical conditions."],
+        correct: 1,
+        hint: "Using skills like reflection and constructive self-talk inward makes a teacher more emotionally steady, authentic, and resilient against burnout."
+      },
+      {
+        category: "Week 14 - Reciprocal Growth",
+        text: "The idea that \"Relationships sustain both students and teachers\" is best described by which concept?",
+        choices: ["Reciprocal Growth (Students grow through support; teachers grow in compassion and meaning by knowing students).","Authoritarian Control","Permissive Neglect","Uninvolved Teaching"],
+        correct: 0,
+        hint: "Helping is not a one-way street. A student's story, pain, or trust often challenges the teacher's assumptions and makes teaching deeply meaningful."
+      },
+      {
+        category: "Week 8 - Clarifying Content",
+        text: "During the Assessment stage, what is the primary purpose of \"Clarifying Content\"?",
+        choices: ["To find out what happened, what the student means, and what context matters, so you don't assume you already know.","To argue with the student's version of the story.","To grade the student's grammar.","To tell the student they are overreacting."],
+        correct: 0,
+        hint: "Before jumping to solutions, a helper must ask questions to truly understand the facts and the severity of the specific situation."
+      },
+      {
+        category: "Week 8 - Action vs. Insight",
+        text: "Why is the \"Action\" stage necessary if the student has already gained \"Understanding\" (Insight)?",
+        choices: ["Because understanding alone is enough for permanent change.","Because \"insight without action often fades quickly\"; students need to translate goals into concrete next steps.","Because the school requires a written action plan for every conversation.","Because the teacher needs to assign homework."],
+        correct: 1,
+        hint: "Realizing why you are struggling is helpful, but practicing a new behavior or setting a small goal is what actually creates change."
+      },
+      {
+        category: "Week 10 - Mental Noise",
+        text: "Before a critical conversation with a student, a teacher realizes they are irritated about a prior staff meeting. What should the teacher do?",
+        choices: ["Vent to the student about the staff meeting to build rapport.","Use a centering tool, like a deep breath, to consciously push aside the \"mental noise\" and commit to being present.","Cancel the conversation immediately.","Ignore the student and focus on their own irritation."],
+        correct: 1,
+        hint: "Effective helping requires pushing aside unrelated worries so your attention is not scattered."
+      }
+    ]
+  }
+  // Buraya mock1, mock2, mock4 vb. eklenecek
+};
+
+const KEYS = ['A','B','C','D'];
+const STORAGE_KEY = 'quiz_arena_v3';
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Ensure all tests have entries
+      Object.keys(TESTS).forEach(k => {
+        if (!parsed.tests[k]) parsed.tests[k] = { current: 0, answers: {}, finished: false };
+      });
+      return parsed;
+    }
+  } catch(e) {}
+  const s = { activeTest: Object.keys(TESTS)[0], tests: {} };
+  Object.keys(TESTS).forEach(k => s.tests[k] = { current: 0, answers: {}, finished: false });
+  return s;
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function ts() { return state.tests[state.activeTest]; }
+function tq() { return TESTS[state.activeTest].questions; }
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+function render() {
+  renderTestNav();
+  const t = ts();
+  const questions = tq();
+  const total = questions.length;
+  const answeredCount = Object.keys(t.answers).filter(k => t.answers[k] !== undefined).length;
+  const pct = Math.round((answeredCount / total) * 100);
+
+  document.getElementById('headerMeta').textContent = `${answeredCount}/${total} tamamlandı`;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('statAnswered').textContent = answeredCount;
+  document.getElementById('statEmpty').textContent = total - answeredCount;
+  document.getElementById('statPercent').textContent = pct + '%';
+
+  // Optic grid — 5 columns for 45 questions
+  const grid = document.getElementById('opticGrid');
+  grid.innerHTML = '';
+  questions.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'optic-btn';
+    const hasAnswer = t.answers[i] !== undefined;
+    if (hasAnswer) btn.classList.add('answered');
+    if (i === t.current && !t.finished) btn.classList.add('active');
+    btn.innerHTML = `<span>${i+1}</span>${hasAnswer ? `<span class="choice-badge">${KEYS[t.answers[i]]}</span>` : ''}`;
+    btn.onclick = () => { if(t.finished) return; jumpTo(i); };
+    grid.appendChild(btn);
+  });
+
+  // Finish vs question
+  if (t.finished) {
+    document.getElementById('questionCard').style.display = 'none';
+    document.getElementById('navBar').style.display = 'none';
+    document.getElementById('finishScreen').classList.add('show');
+    const correct = questions.filter((q, i) => t.answers[i] === q.correct).length;
+    document.getElementById('finishScore').textContent = `${correct}/${total}`;
+    document.getElementById('finishTestName').textContent = TESTS[state.activeTest].label + ' sonucu';
+    return;
+  }
+
+  document.getElementById('questionCard').style.display = 'flex';
+  document.getElementById('navBar').style.display = 'flex';
+  document.getElementById('finishScreen').classList.remove('show');
+
+  const q = questions[t.current];
+  document.getElementById('qNum').textContent = t.current + 1;
+  document.getElementById('qCategory').textContent = q.category;
+  document.getElementById('questionText').textContent = q.text;
+
+  // Choices
+  const container = document.getElementById('choicesContainer');
+  container.innerHTML = '';
+  q.choices.forEach((text, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    if (t.answers[t.current] === i) btn.classList.add('selected');
+    btn.innerHTML = `<span class="choice-key">${KEYS[i]}</span><span class="choice-text">${text}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+
+  document.getElementById('prevBtn').disabled = t.current === 0;
+  document.getElementById('nextBtn').textContent = t.current === total - 1 ? 'Bitir ✓' : 'Sonraki →';
+  document.getElementById('navCounter').textContent = `${t.current + 1} / ${total}`;
+}
+
+function renderTestNav() {
+  const nav = document.getElementById('testNav');
+  // keep label, rebuild tabs
+  nav.innerHTML = '<span class="test-nav-label">Test:</span>';
+  Object.entries(TESTS).forEach(([key, test]) => {
+    const t = state.tests[key];
+    const total = test.questions.length;
+    const answered = Object.keys(t.answers).filter(k => t.answers[k] !== undefined).length;
+    const tab = document.createElement('button');
+    tab.className = 'test-tab' + (state.activeTest === key ? ' active' : '');
+    tab.innerHTML = `${test.label}<span class="tab-progress">${answered}/${total}</span>`;
+    tab.onclick = () => switchTest(key);
+    nav.appendChild(tab);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function switchTest(key) {
+  state.activeTest = key;
+  saveState();
+  render();
+  document.querySelector('.main').scrollTop = 0;
+}
+
+function selectAnswer(i) {
+  ts().answers[ts().current] = i;
+  saveState();
+  render();
+}
+
+function navigate(dir) {
+  const t = ts();
+  const next = t.current + dir;
+  if (next < 0) return;
+  if (next >= tq().length) {
+    t.finished = true;
+    saveState();
+    render();
+    return;
+  }
+  t.current = next;
+  saveState();
+  render();
+  document.querySelector('.main').scrollTop = 0;
+}
+
+function jumpTo(i) {
+  ts().current = i;
+  saveState();
+  render();
+}
+
+function resetCurrentTest() {
+  const key = state.activeTest;
+  if (!state.tests[key].finished && !confirm('Bu testin tüm cevapları silinecek. Emin misin?')) return;
+  state.tests[key] = { current: 0, answers: {}, finished: false };
+  saveState();
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HINT
+// ═══════════════════════════════════════════════════════════════
+function showHint() {
+  document.getElementById('hintText').textContent = tq()[ts().current].hint;
+  document.getElementById('hintModal').classList.add('show');
+}
+function closeHint(e) { if (e.target === document.getElementById('hintModal')) closeHintDirect(); }
+function closeHintDirect() { document.getElementById('hintModal').classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (ts().finished) return;
+  if (e.key === 'Escape') { closeHintDirect(); return; }
+  if (e.key === 'ArrowRight') { navigate(1); return; }
+  if (e.key === 'ArrowLeft')  { navigate(-1); return; }
+  const map = { a:0, b:1, c:2, d:3 };
+  if (map[e.key.toLowerCase()] !== undefined) selectAnswer(map[e.key.toLowerCase()]);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
+
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "header" "main" "sidebar";
+  }
+  .sidebar { border-left: none; border-top: 1px solid var(--glass-border); }
+}
